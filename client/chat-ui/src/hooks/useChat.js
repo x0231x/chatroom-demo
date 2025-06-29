@@ -4,11 +4,12 @@ import { HubConnectionBuilder } from '@microsoft/signalr';
 export default function useChat() {
   const [messages, setMessages] = useState([]);
   const connRef = useRef(null);
+  const apiBase = import.meta.env.VITE_API_BASE ?? 'http://localhost:5000';
 
   // 建立連線
   useEffect(() => {
     const conn = new HubConnectionBuilder()
-      .withUrl('http://localhost:5111/chat', { withCredentials: true })
+      .withUrl(`${apiBase}/chat`, { withCredentials: true })
       .withAutomaticReconnect()
       .build();
 
