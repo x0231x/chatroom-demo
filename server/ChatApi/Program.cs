@@ -1,3 +1,5 @@
+using ChatApi.Data; 
+using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args); // 啟動 app 的建構器
 
 // ----------服務註冊----------
@@ -9,6 +11,8 @@ builder.Services.AddCors(o =>
         .AllowCredentials()));
 
 builder.Services.AddSignalR(); // 將SignalR加入builder
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseSqlite("Data Source=chat.db"));   // ← chat.db 會放在專案根目錄
 
 var app = builder.Build(); // 建立 app
 
