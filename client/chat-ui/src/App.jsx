@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import useChat from "./hooks/useChat";
 
 export default function App() {
@@ -21,6 +21,13 @@ export default function App() {
   const { messages, send, recall, connected } = useChat();
   const username = localStorage.getItem("username");
 
+    /* 把所有訊息做成 id → message 的對照表，方便 lookup */
+  const msgMap = useMemo(() => {
+    const map = {};
+    messages.forEach((m) => (map[m.id] = m));
+    return map;
+  }, [messages]);
+
   return (
     <main className="flex flex-col mx-auto p-4 justify-center items-center w-full">
       {/* 若正在回覆，顯示提示框 */}
@@ -39,6 +46,7 @@ export default function App() {
       <ul className="flex flex-col overflow-y-auto mb-4 border rounded border-black dark:border-white w-full p-4">
         {messages.map((m) => {
           const isMe = m.user === username; // 判斷自己
+          const parent = m.replyToId ? msgMap[m.replyToId] : null; // 找被回覆的訊息
 
           return (
             <li
@@ -58,9 +66,10 @@ export default function App() {
                 "訊息已收回"
               ) : (
                 <>
-                  {m.replyToId && (
-                    <div className="mb-1 p-1 text-xs  rounded">
-                      ↪︎ 回覆 #{m.replyToId}
+                  {/* 顯示「回覆誰與被回覆內容的前10字」*/}
+                  {parent && (
+                    <div className="mb-1 p-1 text-xs rounded">
+                      ↪︎ 回覆 <b>{parent.user}</b>：{parent.content.slice(0, 10)}…
                     </div>
                   )}
                   <b className="text-primary-600">{m.user}：</b>

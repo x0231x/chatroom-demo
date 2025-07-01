@@ -6,6 +6,9 @@
 可以開啟一個新分頁與一個無痕模式的新分頁，模擬兩名使用者對談。  
 (使用者名稱會記錄在localstorage內，所以不開無痕模式去開兩個分頁的話會視為同一個人)  
 
+![聊天室展示1](chatroom-demo-image1.png)  
+![聊天室展示2](chatroom-demo-image2.png)
+
 # Getting Started
 
 # 1. 前置
@@ -19,9 +22,14 @@ cd server/ChatApi
 dotnet ef database update  
 
 # 3. 執行
-前端執行 pnpm dev  
+cd client/chat-ui  
+pnpm dev  
 
-後端執行 dotnet run  
+cd server/ChatApi  
+dotnet run  
+
+# 4. 測試  
+前往 http://localhost:5173/ 做測試，開啟一個新分頁與一個無痕模式的新分頁，模擬兩名使用者對談。  
 
 # 環境變數
 VITE_API_BASE – 前端連線的後端 URL（預設 http://localhost:5111）  
