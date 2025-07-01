@@ -17,49 +17,89 @@ export default function App() {
   }, [user]);
 
   const [text, setText] = useState("");
-  const { messages, send } = useChat();
-  const username = localStorage.getItem('username');
+  const [replyTo, setReplyTo] = useState(null); // 目前選取的回覆對象
+  const { messages, send, recall, connected } = useChat();
+  const username = localStorage.getItem("username");
 
   return (
-    <>
-      <main className="flex flex-col mx-auto p-4 justify-center items-center w-full">
-        <ul className="flex flex-col overflow-y-auto mb-4 border rounded border-black dark:border-white w-full p-4">
-          {messages.map((m, i) => {
-            const isMe = m.user === username; // 判斷自己
+    <main className="flex flex-col mx-auto p-4 justify-center items-center w-full">
+      {/* 若正在回覆，顯示提示框 */}
+      {replyTo && (
+        <div className="w-full mb-2 p-2 bg-gray-400 text-black rounded">
+          回覆 <b>{replyTo.user}</b>：{replyTo.content.slice(0, 30)}…
+          <button
+            className="ml-2 text-black dark:text-white bg-gray-500 p-1 rounded"
+            onClick={() => setReplyTo(null)}
+          >
+            取消
+          </button>
+        </div>
+      )}
 
-            return (
-              <li
-                key={i}
-                className={
-                  [
-                    "mb-2 text-black   p-4 rounded-xl shadow max-w-[60%]",
-                    isMe ? "bg-blue-400 self-end" : "bg-gray-200 dark:bg-amber-50 self-start",
-                  ].join(" ")
-                }
-              >
-                <b className="text-primary-600">{m.user}：</b>
-                {m.message}
-              </li>
-            );
-          })}
-        </ul>
+      <ul className="flex flex-col overflow-y-auto mb-4 border rounded border-black dark:border-white w-full p-4">
+        {messages.map((m) => {
+          const isMe = m.user === username; // 判斷自己
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            send(user, text);
-            setText("");
-          }}
-          className="w-full p-8"
-        >
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            className="border rounded w-full p-2"
-            placeholder="Type..."
-          />
-        </form>
-      </main>
-    </>
+          return (
+            <li
+              key={m.id}
+              onClick={() => !m.recall && setReplyTo(m)} // 點一下選為回覆對象
+              className={[
+                "mb-2 max-w-[60%] p-4 rounded-xl shadow cursor-pointer",
+                m.recall
+                  ? "italic text-gray-400 bg-transparent self-center"
+                  : isMe
+                  ? "bg-blue-400 self-end"
+                  : "bg-gray-200 dark:bg-amber-50 text-black self-start",
+                isMe ? "text-right" : "text-left",
+              ].join(" ")}
+            >
+              {m.recall ? (
+                "訊息已收回"
+              ) : (
+                <>
+                  {m.replyToId && (
+                    <div className="mb-1 p-1 text-xs  rounded">
+                      ↪︎ 回覆 #{m.replyToId}
+                    </div>
+                  )}
+                  <b className="text-primary-600">{m.user}：</b>
+                  {m.content}
+                  {/* 自己的訊息才顯示收回按鈕 */}
+                  {isMe && !m.recall && (
+                    <button
+                      className="ml-2 bg-gray-500 p-1 rounded"
+                      onClick={() => recall(m.id)}
+                    >
+                      收回
+                    </button>
+                  )}
+                </>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const msg = text.trim();
+          if (!connected || !msg) return; // 未連線或空字串時不送
+          send(user, msg, replyTo?.id); // 帶入 replyToId
+          setText("");
+          setReplyTo(null); // 送出後清除回覆狀態
+        }}
+        className="w-full p-8"
+      >
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="border rounded w-full p-2 disabled:opacity-50"
+          placeholder={connected ? "Type..." : "Connecting..."}
+          disabled={!connected} // 連線前禁用
+        />
+      </form>
+    </main>
   );
 }
